@@ -1,0 +1,224 @@
+# import random and pygame; initialize pygame
+import random
+# import pygame
+
+# pygame.init()
+
+COLOURS = ["Blue", "Green", "Red", "Yellow"]
+NUMBERS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "#"]
+    
+def deckBuild():
+    deck = []
+    for number in NUMBERS:
+        if number == "2":
+            for i in range(0, 12):
+                cardvalue = "{} {}".format("Wild", number)
+                deck.append(cardvalue)
+            
+        elif NUMBERS.index(number) < 6:
+            for i in range(0, 3):
+                for colour in COLOURS:
+                    cardvalue = "{} {}".format(colour, number)
+                    deck.append(cardvalue)
+
+        else:
+            for i in range(0, 2):
+                for colour in COLOURS:
+                    cardvalue = "{} {}".format(colour, number)
+                    deck.append(cardvalue)
+    
+    return(deck)
+
+
+def shuffleDeck(deck):
+    for cardSpace in range(len(deck)):
+        randomSpace = random.randint(0, 107)
+        deck[cardSpace], deck[randomSpace] = deck[randomSpace], deck[cardSpace]
+    return deck
+
+
+def drawCards(numCards):
+    cardsDrawn = []
+    for x in range(numCards):
+        cardsDrawn.append(dosDeck.pop(0))
+    return cardsDrawn
+
+
+def myHand(player, playerHand):
+    print("Player {}'s Move".format(player + 1))
+    print("My hand: ")
+    print("-------")
+    y = 1
+    for card in playerHand:
+        print("{} {} ".format(y, card))
+        y += 1
+    print("")
+
+
+def validPlay(colour, number, playerHand):
+    for card in playerHand:
+        splitCard = card.split(" ", 1)
+        if "Wild" in card or colour in card or number in card:
+            return True
+    return False
+
+def valid2CardPlay(number, playerHand):
+    x = 0
+    if len(playerHand) >= 2:
+        while x < len(playerHand):
+            for card1 in playerHand[:-1]:
+                splitCard1 = card1.split(" ", 1)
+                for card2 in playerHand[(x+1):]:
+                    splitCard2 = card2.split(" ", 1)
+                    total = int(splitCard1[1]) + int(splitCard2[1])
+                    if total == int(number):
+                        return True
+                x += 1
+    return False
+
+def valid2CardPlayEndCheck(number, firstCard, secondCard):
+    splitFirstCard = firstCard.split(" ", 1)
+    splitSecondCard = secondCard.split(" ", 1)
+    total = int(splitFirstCard[1]) + int(splitSecondCard[1])
+    if total == int(number):
+        return True
+    return False
+
+
+dosDeck = deckBuild()
+dosDeck = shuffleDeck(dosDeck)
+dosDeck = shuffleDeck(dosDeck)
+currentDiscard = ""
+discards = []
+
+players = []
+numPlayers = input("1 or 2 players? ")
+while numPlayers != "1" and numPlayers != "2":
+    numPlayers = input("1 or 2 players? Please enter the number \"1\" or \"2\": ")
+for player in range(int(numPlayers)):
+    players.append(drawCards(7))
+
+playerTurn = 0
+playerDirect = 1
+playing = True
+discards.append(dosDeck.pop(0))
+currentDiscard = discards[0]
+splitDiscard = discards[0].split(" ", 1)
+currentColour = splitDiscard[0]
+currentNumber = splitDiscard[1]
+
+if currentColour == "Wild":
+    getColour = input("The first discard is: {}".format(currentDiscard) + ". What color would you like to make this card (Blue, Red, Yellow, Green)? ")
+    while getColour.capitalize() not in COLOURS:
+        getColour = input("The first discard is: {}".format(currentDiscard) + " What color would you like to make this card (Blue, Red, Yellow, Green)? ")
+    currentColour = getColour.capitalize()
+    currentDiscard = currentColour + " 2"
+elif currentNumber == "#":
+    currentNumber = input("The first discard is: {}".format(currentDiscard) + ". What number would you like to make this card (Numbers 1-10)? ")
+    while currentNumber not in NUMBERS or currentNumber == "#":
+        currentNumber = input("The first discard is: {}".format(currentDiscard) + " What number would you like to make this card (Numbers 1-10)? ")
+    currentDiscard = currentColour + " " + currentNumber
+
+while playing:
+    myHand(playerTurn, players[playerTurn])
+    print("Most recent discard is: {}\n".format(currentDiscard))
+    if validPlay(currentColour, currentNumber, players[playerTurn]) or valid2CardPlay(currentNumber, players[playerTurn]):
+        turnComplete = False
+        while turnComplete == False:
+            numOfCards = input("Would you like to play 1 or 2 cards? You may also type \"draw\" to draw a card and skip your turn: ")
+            while numOfCards != "1" and numOfCards != "2" and numOfCards.lower() != "draw":
+                numOfCards = input("Would you like to play 1 or 2 cards? Please enter the number \"1\" or \"2\" or enter \"draw\" to draw a card and skip your turn: ")
+                
+            if numOfCards == "1":
+                chooseCard = input("Which card will you play? ")
+                while int(chooseCard) > len(players[playerTurn]):
+                    chooseCard = input("Please enter the label number for the card you'd like to play: ")
+                if not validPlay(currentColour, currentNumber, [players[playerTurn][int(chooseCard) - 1]]):
+                    print("Oops, this is not a valid play.")
+                else:
+                    turnComplete = True
+                    
+            elif numOfCards == "2":
+                chooseCard1 = input("What is the first card you would like to play? ")
+                while int(chooseCard1) > len(players[playerTurn]):
+                    chooseCard1 = input("Please enter the label number for the first card you'd like to play: ")
+                chosenCards = [int(chooseCard1) - 1]
+                chooseCard2 = input("What is the second card you would like to play? ")
+                while int(chooseCard2) > len(players[playerTurn]) or chooseCard1 == chooseCard2:
+                    chooseCard2 = input("Please enter the label number for the second card you'd like to play: ")
+                chosenCards.append(int(chooseCard2) - 1)
+                if not valid2CardPlayEndCheck(currentNumber, players[playerTurn][chosenCards[0]], players[playerTurn][chosenCards[1]]):
+                    print("Oops, this is not a valid play.")
+                else:
+                    turnComplete = True
+
+            else:
+                turnComplete = True
+                
+        if numOfCards == "1":
+            print("Played {}".format(players[playerTurn][int(chooseCard) - 1]))
+            print("")
+            currentDiscard = players[playerTurn].pop(int(chooseCard) - 1)
+            discards.append(currentDiscard)
+            splitDiscard = currentDiscard.split(" ", 1)
+            currentColour = splitDiscard[0]
+            currentNumber = splitDiscard[1]
+            
+        elif numOfCards == "2":
+            print("Played {} and {}".format(players[playerTurn][int(chosenCards[0])], players[playerTurn][int(chosenCards[1])]))
+            print("")
+            topCard = input("Would you like Card 1 ({}) or Card 2 ({}) to be placed at the top of the discard pile? ".format(players[playerTurn][int(chosenCards[0])], players[playerTurn][int(chosenCards[1])]))
+            while topCard != "1" and topCard != "2":
+                topCard = input("Would you like Card 1 ({}) or Card 2 ({}) to be placed at the top of the discard pile? Please enter the number \"1\" or \"2\": ".format(players[playerTurn][int(chosenCards[0])], players[playerTurn][int(chosenCards[1])]))
+            if topCard == "1":
+                if chosenCards[0] > chosenCards[1]:
+                    currentDiscard = players[playerTurn].pop(chosenCards[0])
+                    discards.append(currentDiscard)
+                    discards.append(players[playerTurn].pop(chosenCards[1]))
+                elif chosenCards[0] < chosenCards[1]:
+                    currentDiscard = players[playerTurn].pop(chosenCards[0])
+                    discards.append(currentDiscard)
+                    discards.append(players[playerTurn].pop(chosenCards[1] - 1))
+            elif topCard == "2":
+                if chosenCards[1] > chosenCards[0]:
+                    currentDiscard = players[playerTurn].pop(chosenCards[1])
+                    discards.append(currentDiscard)
+                    discards.append(players[playerTurn].pop(chosenCards[0]))
+                elif chosenCards[1] < chosenCards[0]:
+                    currentDiscard = players[playerTurn].pop(chosenCards[1])
+                    discards.append(currentDiscard)
+                    discards.append(players[playerTurn].pop(chosenCards[0] - 1))
+            splitDiscard = currentDiscard.split(" ", 1)
+            currentColour = splitDiscard[0]
+            currentNumber = splitDiscard[1]
+            
+        elif numOfCards.lower() == "draw":
+            if len(dosDeck) == 0:
+                dosDeck = shuffleDeck(discards[:-1])
+            players[playerTurn].extend(drawCards(1))
+            print("Player {} skipped their turn.".format(player + 1))
+            
+        
+        if currentColour == "Wild":
+            currentColour = input("What color would you like to make this card (Blue, Red, Yellow, Green)? ")
+            while currentColour.capitalize() not in COLOURS:
+                currentColour = input("What color would you like to make your wild card (Blue, Red, Yellow, Green)? ")
+            currentDiscard = currentColour.capitalize() + " 2"
+            currentColour = currentColour.capitalize()
+        elif currentNumber == "#":
+            currentNumber = input("What number would you like to make your wild card (Numbers 1-10)? ")
+            while currentNumber not in NUMBERS or currentNumber == "#":
+                currentNumber = input("What number would you like to make this card (Numbers 1-10)? ")
+            currentDiscard = currentColour + " " + currentNumber
+        
+    else:
+        print("No valid plays. Please draw a card.")
+        if len(dosDeck) == 0:
+            dosDeck = shuffleDeck(discards[:-1])
+        players[playerTurn].extend(drawCards(1))
+        
+    playerTurn += playerDirect
+    if playerTurn == int(numPlayers):
+        playerTurn = 0
+    elif playerTurn < 0:
+        playerTurn = int(numPlayers) - 1
